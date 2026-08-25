@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   authors: [{ name: "Kharch" }],
   openGraph: {
     title: "Kharch — Where is my salary",
-    description: "Track your monthly expenses and savings. Free forever.",
+    description: "Track your monthly expenses and savings. Know where your salary goes.",
     type: "website",
   },
   manifest: "/manifest.json",

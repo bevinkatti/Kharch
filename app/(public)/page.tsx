@@ -58,7 +58,7 @@ export default function LandingPage() {
             style={{ background: "var(--brand-dim)", borderColor: "var(--brand-border)", color: "var(--text-brand)" }}
           >
             <span className="w-1.5 h-1.5 rounded-full flex-none" style={{ background: "var(--brand)" }} />
-            Free forever · No credit card
+            Free · No credit card
           </div>
 
           <h1
@@ -81,7 +81,7 @@ export default function LandingPage() {
               maxWidth: 480,
             }}
           >
-            Kharch gives you a clear monthly breakdown — fixed, savings, living — the moment your salary lands. No spreadsheets. No subscriptions.
+            Kharch gives you a clear monthly breakdown — fixed, savings, living — the moment your salary lands. No spreadsheets. No confusion.
           </p>
 
           <div className="flex flex-col xs:flex-row items-stretch xs:items-center gap-2.5">
@@ -247,7 +247,7 @@ export default function LandingPage() {
             Start tracking today
           </h2>
           <p className="text-sm mb-6 sm:mb-7" style={{ color: "var(--text-md)" }}>
-            Free forever. No ads. No upsells. Just your money, clear as day.
+            Free . No ads. No upsells. Just your money, clear as day.
           </p>
           <Link
             href="/sign-up"
