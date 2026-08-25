@@ -9,6 +9,6 @@ export default function robots(): MetadataRoute.Robots {
         disallow: ["/dashboard", "/month", "/settings", "/api", "/onboarding"],
       },
     ],
-    sitemap: `${process.env.NEXT_PUBLIC_BASE_URL ?? "https://kharch.app"}/sitemap.xml`,
+    sitemap: `${process.env.NEXT_PUBLIC_BASE_URL ?? "https://mykharch.vercel.app"}/sitemap.xml`,
   };
 }
