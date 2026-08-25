@@ -1,0 +1,31 @@
+import type { MetadataRoute } from 'next';
+
+export default function manifest(): MetadataRoute.Manifest {
+  return {
+    name: 'Kharch - Where is my salary',
+    short_name: 'Kharch',
+    description: 'Track your monthly expenses and savings.',
+    start_url: '/dashboard',
+    display: 'standalone',
+    background_color: '#0f0d14',
+    theme_color: '#0f0d14',
+    icons: [
+      {
+        src: '/icon-192.png',
+        sizes: '192x192',
+        type: 'image/png',
+      },
+      {
+        src: '/icon-512.png',
+        sizes: '512x512',
+        type: 'image/png',
+      },
+      {
+        src: '/icon-512.png',
+        sizes: '512x512',
+        type: 'image/png',
+        purpose: 'maskable',
+      },
+    ],
+  };
+}
