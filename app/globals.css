@@ -196,7 +196,7 @@ input[type="number"] { -moz-appearance: textfield; }
 .toasts {
   position: fixed;
   /* Mobile: above bottom nav (68px) + safe area */
-  bottom: calc(68px + env(safe-area-inset-bottom, 0px) + 12px);
+  bottom: calc(var(--mobile-bottom-nav-height) + env(safe-area-inset-bottom, 0px) + 12px);
   right: 16px;
   left: 16px;
   z-index: 900;
@@ -214,11 +214,20 @@ input[type="number"] { -moz-appearance: textfield; }
   }
 }
 
-/* Slightly taller mobile bottom nav on iOS */
+/* Mobile bottom navigation height */
+:root {
+  --mobile-bottom-nav-height: 62px;
+}
+
+/* Slightly taller bottom nav on iOS */
 @supports (-webkit-touch-callout: none) {
-  .mobile-bottom-nav-inner {
-    height: 72px !important;
+  :root {
+    --mobile-bottom-nav-height: 72px;
   }
+}
+
+.mobile-bottom-nav-inner {
+  height: var(--mobile-bottom-nav-height);
 }
 
 /* ── Confirm overlay ─────────────────────────────────────── */

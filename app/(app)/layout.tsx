@@ -53,7 +53,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         {/* ── Main ─────────────────────────────────────────── */}
         <main
           className="flex-1 min-w-0 w-full md:ml-[220px] min-h-screen"
-          style={{ paddingBottom: "calc(68px + env(safe-area-inset-bottom, 0px))" }}
+          style={{ paddingBottom: "calc(var(--mobile-bottom-nav-height) + env(safe-area-inset-bottom, 0px))" }}
         >
           {/* Mobile header — full-width, proper height for iOS tap targets */}
           <header
@@ -99,7 +99,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             paddingBottom: "env(safe-area-inset-bottom, 0px)",
           }}
         >
-          <div className="mobile-bottom-nav-inner flex items-stretch" style={{ height: 68 , paddingBottom: 4 }}>
+          <div
+            className="mobile-bottom-nav-inner flex items-stretch"
+            style={{ paddingBottom: 4 }}
+          >
             <MobileLink href="/dashboard"     icon={<LayoutDashboard className="w-5 h-5" />} label="Dashboard"  active={pathname === "/dashboard"} />
             <MobileLink href="/month/current" icon={<CalendarDays    className="w-5 h-5" />} label="Month"      active={pathname.startsWith("/month")} />
             <MobileLink href="/settings"      icon={<Settings        className="w-5 h-5" />} label="Settings"   active={pathname === "/settings"} />
