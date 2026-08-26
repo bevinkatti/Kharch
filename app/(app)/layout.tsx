@@ -99,7 +99,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             paddingBottom: "env(safe-area-inset-bottom, 0px)",
           }}
         >
-          <div className="flex items-stretch" style={{ height: 56 }}>
+          <div className="flex items-stretch" style={{ height: 68 }}>
             <MobileLink href="/dashboard"     icon={<LayoutDashboard className="w-5 h-5" />} label="Dashboard"  active={pathname === "/dashboard"} />
             <MobileLink href="/month/current" icon={<CalendarDays    className="w-5 h-5" />} label="Month"      active={pathname.startsWith("/month")} />
             <MobileLink href="/settings"      icon={<Settings        className="w-5 h-5" />} label="Settings"   active={pathname === "/settings"} />
