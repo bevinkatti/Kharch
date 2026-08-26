@@ -257,6 +257,17 @@ export default function LandingPage() {
             Create free account <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
+
+        <div className="flex justify-center mt-7">
+          <Link
+            href="/install"
+            className="text-sm"
+            style={{ color: "var(--text-md)" }}
+          >
+            Install Kharch →
+          </Link>
+        </div>
+
       </section>
 
       {/* ── Footer ─────────────────────────────────────────── */}
