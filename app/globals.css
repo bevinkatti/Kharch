@@ -195,8 +195,8 @@ input[type="number"] { -moz-appearance: textfield; }
 /* ── Toast stack ─────────────────────────────────────────── */
 .toasts {
   position: fixed;
-  /* Mobile: above bottom nav (68px) + safe area */
-  bottom: calc(68px + env(safe-area-inset-bottom, 0px) + 12px);
+  /* Mobile: above bottom nav (72px) + safe area */
+  bottom: calc(72px + env(safe-area-inset-bottom, 0px) + 12px);
   right: 16px;
   left: 16px;
   z-index: 900;
