@@ -222,7 +222,7 @@ input[type="number"] { -moz-appearance: textfield; }
 /* Slightly taller bottom nav on iOS */
 @supports (-webkit-touch-callout: none) {
   :root {
-    --mobile-bottom-nav-height: 76px;
+    --mobile-bottom-nav-height: 78px;
   }
 }
 
