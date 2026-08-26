@@ -323,6 +323,17 @@ export function MonthLedger({
         )}
       </div>
 
+      {/* ── Money-flow checklist ── */}
+      <MoneyFlowChecklist
+        salary={salary}
+        currency={CUR}
+        items={checkItems}
+        checks={checks}
+        efAmount={efAmount}
+        onItemsChange={handleItemsChange}
+        onChecksChange={handleChecksChange}
+      />
+
       {/* ── Notes ── */}
       <div
         className="rounded-xl border overflow-hidden"
@@ -340,17 +351,6 @@ export function MonthLedger({
           style={{ color: "var(--text-hi)", minHeight: 88 }}
         />
       </div>
-
-      {/* ── Money-flow checklist ── */}
-      <MoneyFlowChecklist
-        salary={salary}
-        currency={CUR}
-        items={checkItems}
-        checks={checks}
-        efAmount={efAmount}
-        onItemsChange={handleItemsChange}
-        onChecksChange={handleChecksChange}
-      />
 
       {/* ── Reward ── */}
       <motion.div
