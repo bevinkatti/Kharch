@@ -214,6 +214,13 @@ input[type="number"] { -moz-appearance: textfield; }
   }
 }
 
+/* Slightly taller mobile bottom nav on iOS */
+@supports (-webkit-touch-callout: none) {
+  .mobile-bottom-nav-inner {
+    height: 72px !important;
+  }
+}
+
 /* ── Confirm overlay ─────────────────────────────────────── */
 .overlay {
   position: fixed;
