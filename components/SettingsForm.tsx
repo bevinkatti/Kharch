@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
-import { Save, Check, Loader2, IndianRupee, MapPin, Shield, TrendingUp, CalendarDays } from "lucide-react";
+import { Save, Check, Loader2, IndianRupee, MapPin, Shield, TrendingUp, CalendarDays, Smartphone } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/components/ui/Toast";
 
@@ -190,6 +191,48 @@ export function SettingsForm({ initial }: Props) {
         {saveState === "error"  && "Try again"}
         {saveState === "idle"   && <><Save    className="w-4 h-4" />Save settings</>}
       </button>
+
+      <Link
+        href="/install"
+        className="mt-4 rounded-xl border flex items-center gap-3 px-4 sm:px-5 py-4 transition-colors"
+        style={{
+          background: "var(--surface)",
+          borderColor: "var(--border)",
+        }}
+      >
+        <div
+          className="w-9 h-9 rounded-lg flex items-center justify-center flex-none"
+          style={{
+            background: "var(--brand-dim)",
+            color: "var(--text-brand)",
+          }}
+        >
+          <Smartphone className="w-4 h-4" />
+        </div>
+
+        <div className="min-w-0 flex-1">
+          <p
+            className="text-sm font-medium"
+            style={{ color: "var(--text-hi)" }}
+          >
+            Install Kharch
+          </p>
+          <p
+            className="text-xs mt-0.5"
+            style={{ color: "var(--text-lo)" }}
+          >
+            Add Kharch to your home screen for quick access
+          </p>
+        </div>
+
+        <span
+          className="text-sm flex-none"
+          style={{ color: "var(--text-md)" }}
+        >
+          →
+        </span>
+      </Link>
+
     </div>
   );
 }
