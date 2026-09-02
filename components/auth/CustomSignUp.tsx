@@ -111,7 +111,7 @@ export default function CustomSignUp() {
     if (signUp.status === "complete") {
       const { error: finalizeError } = await signUp.finalize({
         navigate: ({ decorateUrl }) => {
-          const url = decorateUrl("/");
+          const url = decorateUrl("/dashboard");
 
           if (url.startsWith("http")) {
             window.location.href = url;
@@ -334,7 +334,6 @@ export default function CustomSignUp() {
             label="First name"
             value={firstName}
             onChange={setFirstName}
-            optional
           />
 
           <Field
