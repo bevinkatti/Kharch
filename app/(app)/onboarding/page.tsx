@@ -14,7 +14,7 @@ const steps = [
 export default function OnboardingPage() {
   const router = useRouter();
   const [step,      setStep]      = useState(0);
-  const [salary,    setSalary]    = useState(44800);
+  const [salary,    setSalary]    = useState<number | "">("");
   const [label,     setLabel]     = useState("");
   const [efTarget,  setEfTarget]  = useState(100000);
   const [salaryDay, setSalaryDay] = useState<number | "">(1);
@@ -25,12 +25,13 @@ export default function OnboardingPage() {
   async function next() {
     if (!isLast) { setStep(s => s + 1); return; }
     setSaving(true);
+    const salaryVal = salary === "" ? 0 : Math.max(0, Number(salary));
     await fetch("/api/settings", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         currency: "₹", city_label: label || "My Budget",
-        ef_target: efTarget, salary,
+        ef_target: Math.max(0, efTarget), salary: salaryVal,
         salary_day: salaryDay === "" ? null : Number(salaryDay),
       }),
     });
@@ -110,9 +111,20 @@ export default function OnboardingPage() {
               <div className="flex items-center gap-2 rounded-xl border px-4 py-3" style={inputBase}>
                 <span className="text-lg font-medium" style={{ color: "var(--text-lo)" }}>₹</span>
                 <input
-                  type="number" value={salary}
-                  onChange={e => setSalary(parseFloat(e.target.value) || 0)}
-                  className="flex-1 bg-transparent font-mono font-semibold focus:outline-none"
+                  type="number"
+                  value={salary}
+                  placeholder="55,000"
+                  min={0}
+                  onChange={e => {
+                    const val = e.target.value;
+                    if (val === "") {
+                      setSalary("");
+                    } else {
+                      const parsed = parseFloat(val);
+                      setSalary(isNaN(parsed) ? "" : Math.max(0, parsed));
+                    }
+                  }}
+                  className="flex-1 bg-transparent font-mono font-semibold focus:outline-none placeholder:text-[var(--text-lo)] placeholder:opacity-50"
                   style={{ color: "var(--text-hi)", fontSize: 24, letterSpacing: "-0.04em" }}
                   inputMode="numeric" autoFocus step={100}
                 />
@@ -155,8 +167,13 @@ export default function OnboardingPage() {
                 <div className="flex items-center gap-2 rounded-xl border px-4" style={{ ...inputBase, minHeight: 48 }}>
                   <span className="text-sm" style={{ color: "var(--text-lo)" }}>Custom ₹</span>
                   <input
-                    type="number" value={efTarget}
-                    onChange={e => setEfTarget(parseFloat(e.target.value) || 0)}
+                    type="number"
+                    min={0}
+                    value={efTarget}
+                    onChange={e => {
+                      const v = parseFloat(e.target.value);
+                      setEfTarget(isNaN(v) ? 0 : Math.max(0, v));
+                    }}
                     className="flex-1 bg-transparent font-mono font-semibold text-sm focus:outline-none text-right"
                     style={{ color: "var(--text-hi)" }}
                     inputMode="numeric" step={10000}

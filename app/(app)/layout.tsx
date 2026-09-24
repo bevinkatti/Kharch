@@ -44,7 +44,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             className="px-4 pb-5 pt-3 border-t flex items-center gap-2.5"
             style={{ borderColor: "var(--border)" }}
           >
-            <UserButton afterSignOutUrl="/" appearance={{ elements: { avatarBox: "w-7 h-7 rounded-lg" } }} />
+            <UserButton appearance={{ elements: { avatarBox: "w-7 h-7 rounded-lg" } }} />
             <span className="flex-1 text-xs truncate" style={{ color: "var(--text-lo)" }}>Account</span>
             <ThemeToggle />
           </div>
@@ -73,7 +73,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             </Link>
             <div className="flex items-center gap-1">
               <ThemeToggle />
-              <UserButton afterSignOutUrl="/" appearance={{ elements: { avatarBox: "w-7 h-7" } }} />
+              <UserButton appearance={{ elements: { avatarBox: "w-7 h-7" } }} />
             </div>
           </header>
 

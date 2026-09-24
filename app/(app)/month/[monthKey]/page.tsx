@@ -34,6 +34,23 @@ export default async function MonthPage({ params }: Props) {
     .eq("month_key", monthKey)
     .single();
 
+  let carriedEfAmount = 0;
+  if (!month) {
+    // Only for a new month record, fetch accumulated emergency fund from latest prior month
+    const { data: latestPriorMonth } = await supabaseAdmin
+      .from("months")
+      .select("ef_amount")
+      .eq("clerk_id", userId)
+      .lt("month_key", monthKey)
+      .order("month_key", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (latestPriorMonth?.ef_amount != null) {
+      carriedEfAmount = Number(latestPriorMonth.ef_amount) || 0;
+    }
+  }
+
   let expenses: Expense[] = [];
   if (month) {
     const { data: exp } = await supabaseAdmin
@@ -97,6 +114,7 @@ export default async function MonthPage({ params }: Props) {
       }
       settings={settings ?? defaultSettings}
       isNew={!month}
+      carriedEfAmount={carriedEfAmount}
       prevMonthSaved={prevMonthSaved}
       prevMonthLabel={prevMonthLabel}
       loggedKeys={loggedKeys}

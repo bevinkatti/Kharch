@@ -23,6 +23,7 @@ interface Props {
   initialExpenses: Expense[];
   settings: UserSettings;
   isNew: boolean;
+  carriedEfAmount?: number;
   prevMonthSaved?: number | null;
   prevMonthLabel?: string | null;
   loggedKeys: Set<string>;
@@ -32,13 +33,17 @@ type SaveState = "idle" | "saving" | "saved" | "error";
 
 export function MonthLedger({
   monthKey, initialMonth, initialExpenses, settings, isNew,
-  prevMonthSaved, prevMonthLabel, loggedKeys,
+  carriedEfAmount, prevMonthSaved, prevMonthLabel, loggedKeys,
 }: Props) {
   const { full: monthLabel } = monthKeyToLabel(monthKey);
   const CUR = settings.currency || "₹";
   const { toast } = useToast();
 
-  const [salary,   setSalary]   = useState(initialMonth?.salary ?? settings.salary ?? 44800);
+  const [salary, setSalary] = useState<number | "">(() => {
+    if (initialMonth?.salary && initialMonth.salary > 0) return initialMonth.salary;
+    if (settings.salary && settings.salary > 0) return settings.salary;
+    return 0;
+  });
   const [expenses] = useState<Expense[]>(initialExpenses);
 
   const [initialMoveState] = useState(() =>
@@ -52,14 +57,17 @@ export function MonthLedger({
   const [checkItems, setCheckItems] = useState<CheckItem[]>(initialMoveState.items);
   const [bonus,     setBonus]     = useState(initialMonth?.bonus     ?? 0);
   const [notes,     setNotes]     = useState(initialMonth?.notes     ?? "");
-  const [efAmount,  setEfAmount]  = useState(initialMonth?.ef_amount ?? 0);
+  const [efAmount,  setEfAmount]  = useState(
+    initialMonth ? initialMonth.ef_amount : (carriedEfAmount ?? 0)
+  );
   const [saveState, setSaveState] = useState<SaveState>("idle");
   const [nudgeDismissed, setNudgeDismissed] = useState(false);
 
   const salaryRef = useRef<HTMLInputElement>(null);
   const timerRef  = useRef<NodeJS.Timeout | null>(null);
 
-  const { fixed, savings, buffer, livingTotal } = calcTotals(expenses, salary);
+  const salaryNum  = typeof salary === "number" ? salary : 0;
+  const { fixed, savings, buffer, livingTotal } = calcTotals(expenses, salaryNum);
   const total      = fixed + savings + livingTotal;
   const fixedPct   = total ? (fixed       / total * 100) : 33;
   const savingsPct = total ? (savings     / total * 100) : 20;
@@ -73,7 +81,7 @@ export function MonthLedger({
         id: "",
         clerk_id: "",
         month_key: monthKey,
-        salary,
+        salary: salaryNum,
         bonus,
         ef_amount: efAmount,
         notes,
@@ -82,7 +90,7 @@ export function MonthLedger({
         created_at: "",
         updated_at: "",
       }),
-      salary,
+      salary: salaryNum,
       bonus,
       ef_amount: efAmount,
       notes,
@@ -93,7 +101,7 @@ export function MonthLedger({
   );
   const efPct       = settings.ef_target
     ? Math.min(100, (efAmount / settings.ef_target) * 100) : 0;
-  const savingsRate = salary ? Math.round((savings / salary) * 100) : 0;
+  const savingsRate = salaryNum ? Math.round((savings / salaryNum) * 100) : 0;
   const showNudge   = !!prevMonthSaved && !allDone && !nudgeDismissed;
 
   useEffect(() => {
@@ -119,7 +127,7 @@ export function MonthLedger({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             month_key: monthKey,
-            salary,
+            salary: typeof salary === "number" ? salary : 0,
             bonus,
             ef_amount: efAmount,
             notes,
@@ -237,7 +245,7 @@ export function MonthLedger({
         <div className="flex items-center gap-2 pt-1 flex-none">
           <SaveBadge state={saveState} />
           <ShareCard
-            monthLabel={monthLabel} savings={savings} salary={salary}
+            monthLabel={monthLabel} savings={savings} salary={salaryNum}
             fixed={fixed} living={livingTotal} savingsRate={savingsRate}
             checksDone={checksDone} checksTotal={checks.length} currency={CUR}
           />
@@ -264,7 +272,17 @@ export function MonthLedger({
                 ref={salaryRef}
                 type="number"
                 value={salary}
-                onChange={e => setSalary(parseFloat(e.target.value) || 0)}
+                placeholder="0"
+                min={0}
+                onChange={e => {
+                  const val = e.target.value;
+                  if (val === "") {
+                    setSalary("");
+                  } else {
+                    const parsed = parseFloat(val);
+                    setSalary(isNaN(parsed) ? "" : Math.max(0, parsed));
+                  }
+                }}
                 className="salary-input bg-transparent font-mono font-semibold focus:outline-none"
                 style={{
                   color: "var(--text-hi)",
@@ -313,11 +331,11 @@ export function MonthLedger({
         </div>
 
         {/* Savings rate badge */}
-        {salary > 0 && savings > 0 && (
+        {salaryNum > 0 && savings > 0 && (
           <>
             <Hr />
             <div className="px-4 sm:px-5 py-3">
-              <SavingsRateBadge savings={savings} salary={salary} />
+              <SavingsRateBadge savings={savings} salary={salaryNum} />
             </div>
           </>
         )}
@@ -325,7 +343,7 @@ export function MonthLedger({
 
       {/* ── Money-flow checklist ── */}
       <MoneyFlowChecklist
-        salary={salary}
+        salary={salaryNum}
         currency={CUR}
         items={checkItems}
         checks={checks}

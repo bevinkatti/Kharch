@@ -39,7 +39,7 @@ export async function PUT(req: NextRequest) {
 
   const { data: existingMonth, error: existingMonthErr } = await supabaseAdmin
     .from("months")
-    .select("id")
+    .select("id, salary")
     .eq("clerk_id", userId)
     .eq("month_key", month_key)
     .maybeSingle();
@@ -61,6 +61,41 @@ export async function PUT(req: NextRequest) {
 
   for (const key of ["salary", "bonus", "ef_amount", "notes", "checks", "check_items"]) {
     if (has(key)) monthPayload[key] = body[key];
+  }
+
+  // Only when a brand-new month record is being created without an explicit ef_amount,
+  // carry forward accumulated emergency fund from the latest prior month.
+  if (isNewMonth && !has("ef_amount")) {
+    const { data: latestPriorMonth } = await supabaseAdmin
+      .from("months")
+      .select("ef_amount")
+      .eq("clerk_id", userId)
+      .lt("month_key", month_key)
+      .order("month_key", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (latestPriorMonth?.ef_amount != null) {
+      monthPayload.ef_amount = Number(latestPriorMonth.ef_amount) || 0;
+    }
+  }
+
+  // For a brand-new month (or an existing month whose salary is still 0/unset and not specified),
+  // inherit the user's global default salary from user_settings.
+  const shouldInheritSalary =
+    (isNewMonth && (!has("salary") || Number(monthPayload.salary) === 0)) ||
+    (!isNewMonth && !has("salary") && Number(existingMonth?.salary) === 0);
+
+  if (shouldInheritSalary) {
+    const { data: userSettings } = await supabaseAdmin
+      .from("user_settings")
+      .select("salary")
+      .eq("clerk_id", userId)
+      .maybeSingle();
+
+    if (userSettings?.salary != null && Number(userSettings.salary) > 0) {
+      monthPayload.salary = Number(userSettings.salary);
+    }
   }
 
   const { data: month, error: monthErr } = await supabaseAdmin

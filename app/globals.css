@@ -267,7 +267,20 @@ input[type="number"] { -moz-appearance: textfield; }
 }
 .cl-headerTitle { color: var(--text-hi) !important; font-size: 20px !important; font-weight: 600 !important; letter-spacing: -0.02em !important; }
 .cl-headerSubtitle { color: var(--text-lo) !important; }
-.cl-formFieldLabel { color: var(--text-md) !important; font-size: 12px !important; font-weight: 500 !important; text-transform: uppercase; letter-spacing: 0.05em !important; }
+.cl-formFieldLabel {
+  color: var(--text-md) !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.05em !important;
+}
+.cl-signIn-root .cl-formFieldLabel,
+.cl-signUp-root .cl-formFieldLabel {
+  text-transform: uppercase;
+}
+.cl-userProfile-root .cl-formFieldLabel,
+.cl-modalContent .cl-formFieldLabel {
+  text-transform: none !important;
+}
 .cl-formFieldInput {
   background: var(--bg-raised) !important;
   border: 1px solid var(--border-strong) !important;

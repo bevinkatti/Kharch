@@ -47,11 +47,16 @@ export function DashboardClient({
 
   // ── Single source of truth: current month state ────────────────────
   // Dashboard owns salary + Expenses. Monthly Moves is owned by This month.
-  const [salary,   setSalary]   = useState(currentMonth?.salary ?? settings.salary ?? 44800);
+  const [salary, setSalary] = useState<number | "">(() => {
+    if (currentMonth?.salary && currentMonth.salary > 0) return currentMonth.salary;
+    if (settings.salary && settings.salary > 0) return settings.salary;
+    return 0;
+  });
   const [expenses, setExpenses] = useState<Expense[]>(currentMonthExpenses);
   const [saveState, setSaveState] = useState<SaveState>("idle");
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
+  const salaryNum = typeof salary === "number" ? salary : 0;
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   const sensors = useSensors(
@@ -79,7 +84,7 @@ export function DashboardClient({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             month_key: monthKey,
-            salary,
+            salary: salaryNum,
             expenses: expenses.map((e, i) => ({
               id: e.id,
               label: e.label,
@@ -136,7 +141,7 @@ export function DashboardClient({
     }
   }
 
-  const { fixed, savings, buffer, livingTotal } = calcTotals(expenses, salary);
+  const { fixed, savings, buffer, livingTotal } = calcTotals(expenses, salaryNum);
   const hasData = stats.months_logged > 0;
 
   return (
@@ -232,7 +237,17 @@ export function DashboardClient({
               <input
                 type="number"
                 value={salary}
-                onChange={e => setSalary(parseFloat(e.target.value) || 0)}
+                placeholder="0"
+                min={0}
+                onChange={e => {
+                  const val = e.target.value;
+                  if (val === "") {
+                    setSalary("");
+                  } else {
+                    const parsed = parseFloat(val);
+                    setSalary(isNaN(parsed) ? "" : Math.max(0, parsed));
+                  }
+                }}
                 className="bg-transparent font-mono font-semibold text-right focus:outline-none"
                 style={{ color: "var(--text-hi)", width: 90, fontSize: 14 }}
                 step={100}
