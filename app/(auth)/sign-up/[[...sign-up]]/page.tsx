@@ -37,11 +37,10 @@ export default function SignUpPage() {
       <SignUp
         fallbackRedirectUrl="/onboarding"
         appearance={{
-          options: {
+          layout: {
             unsafe_disableDevelopmentModeWarnings: true,
             socialButtonsPlacement: "top",
             socialButtonsVariant: "blockButton",
-            autoFocus: false,
             showOptionalFields: true,
           },
         }}
