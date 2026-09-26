@@ -5,10 +5,13 @@ interface Props { fixed: number; savings: number; living: number; center: string
 
 function describeArc(cx: number, cy: number, r: number, startPct: number, endPct: number) {
   const rad = (pct: number) => ((pct / 100) * 360 - 90) * (Math.PI / 180);
-  const x1 = cx + r * Math.cos(rad(startPct));
-  const y1 = cy + r * Math.sin(rad(startPct));
-  const x2 = cx + r * Math.cos(rad(endPct));
-  const y2 = cy + r * Math.sin(rad(endPct));
+  // Round to 4 decimal places so trig results are deterministic across
+  // SSR (Node) and client (browser) — avoids hydration mismatches.
+  const rnd = (n: number) => Math.round(n * 1e4) / 1e4;
+  const x1 = rnd(cx + r * Math.cos(rad(startPct)));
+  const y1 = rnd(cy + r * Math.sin(rad(startPct)));
+  const x2 = rnd(cx + r * Math.cos(rad(endPct)));
+  const y2 = rnd(cy + r * Math.sin(rad(endPct)));
   const large = endPct - startPct > 50 ? 1 : 0;
   return `M ${cx} ${cy} L ${x1} ${y1} A ${r} ${r} 0 ${large} 1 ${x2} ${y2} Z`;
 }

@@ -20,7 +20,7 @@ export function SettingsForm({ initial }: Props) {
   const [currency,  setCurrency]  = useState(initial.currency);
   const [cityLabel, setCityLabel] = useState(initial.city_label);
   const [efTarget,  setEfTarget]  = useState(initial.ef_target);
-  const [salary,    setSalary]    = useState<number | "">(initial.salary);
+  const [salary,    setSalary]    = useState<number | "">(initial.salary || "");
   const [salaryDay, setSalaryDay] = useState<number | "">(initial.salary_day ?? "");
   const [saveState, setSaveState] = useState<SaveState>("idle");
 

@@ -121,5 +121,20 @@ export async function PUT(req: NextRequest) {
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
+  // When the user explicitly saves a salary via Settings (or onboarding),
+  // propagate it to the current calendar month. Only the current month is
+  // touched — historical months keep their stored salary.
+  const newSalary = Number(payload.salary);
+  if (newSalary > 0) {
+    const now = new Date();
+    const currentMonthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+
+    await supabaseAdmin
+      .from("months")
+      .update({ salary: newSalary })
+      .eq("clerk_id", userId)
+      .eq("month_key", currentMonthKey);
+  }
+
   return NextResponse.json({ data });
 }
