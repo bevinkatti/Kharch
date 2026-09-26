@@ -42,6 +42,7 @@ export default function SignUpPage() {
             socialButtonsPlacement: "top",
             socialButtonsVariant: "blockButton",
             autoFocus: false,
+            showOptionalFields: true,
           },
         }}
       />

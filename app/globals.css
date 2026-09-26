@@ -363,6 +363,18 @@ input[type="number"] { -moz-appearance: textfield; }
   color: var(--text-md) !important;
   font-size: 12px !important;
 }
+.kharch-signup .cl-formFieldInfoText,
+.kharch-signup .cl-formFieldWarningText,
+.kharch-signup .cl-formFieldErrorText {
+  color: var(--text-md) !important;
+}
+html[data-theme="dark"] .kharch-signup .cl-formFieldSuccessText {
+  color: var(--text-md) !important;
+}
+html[data-theme="dark"] .kharch-signup .cl-formFieldInputShowPasswordButton,
+html[data-theme="dark"] .kharch-signup .cl-formFieldInputShowPasswordIcon {
+  color: var(--text-md) !important;
+}
 .kharch-signup .cl-formField:has(input[name="firstName"]) .cl-formFieldHintText {
   display: none !important;
 }
@@ -393,7 +405,9 @@ input[type="number"] { -moz-appearance: textfield; }
 .kharch-signup .cl-footer {
   border-top: 1px solid var(--border) !important;
   background-image: none !important;
+  color: var(--text-md) !important;
 }
+.kharch-signup .cl-footer * { color: var(--text-md) !important; }
 .kharch-signup .cl-footerActionLink,
 .kharch-signup .cl-footerPagesLink { color: var(--brand) !important; }
 .kharch-signup :focus-visible {
