@@ -4,8 +4,7 @@
 
 Kharch is a simple personal salary tracking app built around one question:
 
-# **Where is my salary going?**
-
+# **Where is my salary going?**  
 Instead of only tracking money after it disappears, Kharch helps you plan your monthly money flow, turn your planned expenses into actionable monthly moves, and see what remains.
 
 ---

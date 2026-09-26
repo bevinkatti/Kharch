@@ -327,6 +327,85 @@ input[type="number"] { -moz-appearance: textfield; }
 .cl-userButtonPopoverActionButtonText { color: var(--text-md) !important; font-size: 13px !important; }
 .cl-userButtonPopoverFooter { border-top: 1px solid var(--border) !important; }
 
+/* Signup-only Clerk layout and responsive sizing. */
+.auth-layout-shell:has(.kharch-signup) {
+  min-height: 100svh;
+  min-height: 100dvh;
+  padding-top: max(5rem, calc(env(safe-area-inset-top, 0px) + 3.5rem));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-bottom: max(24px, env(safe-area-inset-bottom, 0px));
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  overflow-x: clip;
+}
+.kharch-signup {
+  width: min(100%, 26rem);
+  min-width: 0;
+  margin: auto;
+}
+.kharch-signup .cl-rootBox,
+.kharch-signup .cl-card {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+}
+.kharch-signup .cl-card {
+  overflow: hidden;
+  border-radius: 12px !important;
+}
+.kharch-signup .cl-formFieldLabel,
+.kharch-signup .cl-headerSubtitle,
+.kharch-signup .cl-dividerText,
+.kharch-signup .cl-footerActionText,
+.kharch-signup .cl-footerPages {
+  color: var(--text-md) !important;
+}
+.kharch-signup .cl-formFieldHintText {
+  color: var(--text-md) !important;
+  font-size: 12px !important;
+}
+.kharch-signup .cl-formField:has(input[name="firstName"]) .cl-formFieldHintText {
+  display: none !important;
+}
+.kharch-signup .cl-formField:has(input[name="firstName"]) .cl-formFieldLabel::after {
+  content: " *";
+  color: var(--brand);
+}
+.kharch-signup .cl-formFieldInput,
+.kharch-signup .cl-otpCodeFieldInput {
+  min-height: 48px;
+  font-size: 16px !important;
+}
+.kharch-signup .cl-formFieldInput::placeholder {
+  color: var(--text-md) !important;
+  opacity: 0.8;
+}
+.kharch-signup .cl-formButtonPrimary,
+.kharch-signup .cl-socialButtonsBlockButton {
+  min-height: 48px;
+  font-size: 14px !important;
+}
+.kharch-signup .cl-dividerLine { background: var(--border-strong) !important; }
+.kharch-signup .cl-footer,
+.kharch-signup .cl-footerAction,
+.kharch-signup .cl-footerPages {
+  background: var(--surface) !important;
+}
+.kharch-signup .cl-footer {
+  border-top: 1px solid var(--border) !important;
+  background-image: none !important;
+}
+.kharch-signup .cl-footerActionLink,
+.kharch-signup .cl-footerPagesLink { color: var(--brand) !important; }
+.kharch-signup :focus-visible {
+  outline: 2px solid var(--brand) !important;
+  outline-offset: 2px;
+}
+
+@media (max-width: 359px) {
+  .kharch-signup .cl-card { padding: 20px !important; }
+  .kharch-signup .cl-formFieldInput { min-width: 0; }
+}
+
 /* ── Drag handle ─────────────────────────────────────────── */
 .drag-handle { cursor: grab; touch-action: none; user-select: none; }
 .drag-handle:active { cursor: grabbing; }
