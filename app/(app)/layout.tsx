@@ -1,15 +1,28 @@
 "use client";
 import { UserButton } from "@clerk/nextjs";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { LayoutDashboard, CalendarDays, Settings, IndianRupee } from "lucide-react";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { ToastProvider } from "@/components/ui/Toast";
 import { OfflineBanner } from "@/components/ui/OfflineBanner";
+import { flushDashboardSave } from "@/lib/dashboard-save";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
+
+  async function handleMonthNavigation(event: React.MouseEvent<HTMLAnchorElement>) {
+    if (pathname !== "/dashboard") return;
+    event.preventDefault();
+    try {
+      await flushDashboardSave();
+      router.push("/month/current");
+    } catch {
+      // Keep the Dashboard visible while a failed save remains in local state.
+    }
+  }
 
   return (
     <ToastProvider>
@@ -36,7 +49,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
           <nav className="flex-1 px-3 py-3 space-y-0.5">
             <SidebarLink href="/dashboard"     icon={<LayoutDashboard className="w-[15px] h-[15px]" />} label="Dashboard"  active={pathname === "/dashboard"} />
-            <SidebarLink href="/month/current" icon={<CalendarDays    className="w-[15px] h-[15px]" />} label="This month" active={pathname.startsWith("/month")} />
+            <SidebarLink href="/month/current" onClick={handleMonthNavigation} icon={<CalendarDays    className="w-[15px] h-[15px]" />} label="This month" active={pathname.startsWith("/month")} />
             <SidebarLink href="/settings"      icon={<Settings        className="w-[15px] h-[15px]" />} label="Settings"   active={pathname === "/settings"} />
           </nav>
 
@@ -44,7 +57,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             className="px-4 pb-5 pt-3 border-t flex items-center gap-2.5"
             style={{ borderColor: "var(--border)" }}
           >
-            <UserButton afterSignOutUrl="/" appearance={{ elements: { avatarBox: "w-7 h-7 rounded-lg" } }} />
+            <UserButton appearance={{ elements: { avatarBox: "w-7 h-7 rounded-lg" } }} />
             <span className="flex-1 text-xs truncate" style={{ color: "var(--text-lo)" }}>Account</span>
             <ThemeToggle />
           </div>
@@ -73,7 +86,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             </Link>
             <div className="flex items-center gap-1">
               <ThemeToggle />
-              <UserButton afterSignOutUrl="/" appearance={{ elements: { avatarBox: "w-7 h-7" } }} />
+              <UserButton appearance={{ elements: { avatarBox: "w-7 h-7" } }} />
             </div>
           </header>
 
@@ -104,7 +117,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             style={{ paddingBottom: 4 }}
           >
             <MobileLink href="/dashboard"     icon={<LayoutDashboard className="w-5 h-5" />} label="Dashboard"  active={pathname === "/dashboard"} />
-            <MobileLink href="/month/current" icon={<CalendarDays    className="w-5 h-5" />} label="Month"      active={pathname.startsWith("/month")} />
+            <MobileLink href="/month/current" onClick={handleMonthNavigation} icon={<CalendarDays    className="w-5 h-5" />} label="Month"      active={pathname.startsWith("/month")} />
             <MobileLink href="/settings"      icon={<Settings        className="w-5 h-5" />} label="Settings"   active={pathname === "/settings"} />
           </div>
         </nav>
@@ -115,12 +128,14 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   );
 }
 
-function SidebarLink({ href, icon, label, active }: {
+function SidebarLink({ href, icon, label, active, onClick }: {
   href: string; icon: React.ReactNode; label: string; active: boolean;
+  onClick?: (event: React.MouseEvent<HTMLAnchorElement>) => void;
 }) {
   return (
     <Link
       href={href}
+      onClick={onClick}
       className="flex items-center gap-2.5 px-2.5 py-2 rounded-md text-sm transition-colors"
       style={{
         background: active ? "var(--surface)" : "transparent",
@@ -134,12 +149,14 @@ function SidebarLink({ href, icon, label, active }: {
   );
 }
 
-function MobileLink({ href, icon, label, active }: {
+function MobileLink({ href, icon, label, active, onClick }: {
   href: string; icon: React.ReactNode; label: string; active: boolean;
+  onClick?: (event: React.MouseEvent<HTMLAnchorElement>) => void;
 }) {
   return (
     <Link
       href={href}
+      onClick={onClick}
       className="flex-1 flex flex-col items-center justify-center gap-1 transition-colors"
       style={{ color: active ? "var(--brand)" : "var(--text-lo)" }}
     >

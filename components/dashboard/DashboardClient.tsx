@@ -15,10 +15,12 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { useCountUp } from "@/hooks/useCountUp";
+import { useRouter } from "next/navigation";
 import { SavingsChart } from "@/components/charts/SavingsChart";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { useToast } from "@/components/ui/Toast";
 import { fmtShort, fmt, calcTotals } from "@/lib/utils";
+import { registerDashboardSaveFlusher } from "@/lib/dashboard-save";
 import type { MonthSummary, YearStats, Expense, Month, UserSettings } from "@/types";
 
 interface Props {
@@ -42,17 +44,28 @@ export function DashboardClient({
 }: Props) {
   const CUR = currency;
   const { toast } = useToast();
+  const router = useRouter();
   const [bannerDismissed, setBannerDismissed] = useState(false);
   const monthKey = currentMonthKey;
 
   // ── Single source of truth: current month state ────────────────────
   // Dashboard owns salary + Expenses. Monthly Moves is owned by This month.
-  const [salary,   setSalary]   = useState(currentMonth?.salary ?? settings.salary ?? 44800);
+  const [salary, setSalary] = useState<number | "">(() => {
+    if (currentMonth?.salary && currentMonth.salary > 0) return currentMonth.salary;
+    if (settings.salary && settings.salary > 0) return settings.salary;
+    return 0;
+  });
   const [expenses, setExpenses] = useState<Expense[]>(currentMonthExpenses);
   const [saveState, setSaveState] = useState<SaveState>("idle");
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
+  const salaryNum = typeof salary === "number" ? salary : 0;
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const statusTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const latestSnapshotRef = useRef({ salary: salaryNum, expenses });
+  const latestVersionRef = useRef(0);
+  const persistedVersionRef = useRef(0);
+  const saveQueueRef = useRef<Promise<void>>(Promise.resolve());
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
@@ -69,18 +82,22 @@ export function DashboardClient({
   }
 
   // ── Auto-save ──────────────────────────────────────────────────────
-  const scheduleSave = useCallback(() => {
-    if (timerRef.current) clearTimeout(timerRef.current);
-    setSaveState("saving");
-    timerRef.current = setTimeout(async () => {
+  const queueLatestSave = useCallback(() => {
+    const save = saveQueueRef.current.catch(() => undefined).then(async () => {
+      const version = latestVersionRef.current;
+      if (version <= persistedVersionRef.current) return;
+      const snapshot = latestSnapshotRef.current;
+      setSaveState("saving");
+
       try {
         const res = await fetch("/api/months", {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
+          keepalive: true,
           body: JSON.stringify({
             month_key: monthKey,
-            salary,
-            expenses: expenses.map((e, i) => ({
+            salary: snapshot.salary,
+            expenses: snapshot.expenses.map((e, i) => ({
               id: e.id,
               label: e.label,
               category: e.category,
@@ -89,38 +106,125 @@ export function DashboardClient({
             })),
           }),
         });
-        if (!res.ok) throw new Error();
-        setSaveState("saved");
-        setTimeout(() => setSaveState("idle"), 2000);
-      } catch {
-        setSaveState("error");
-        toast("Auto-save failed", "error");
-        setTimeout(() => setSaveState("idle"), 3000);
+        if (!res.ok) throw new Error("Save request failed");
+        persistedVersionRef.current = Math.max(persistedVersionRef.current, version);
+        if (version === latestVersionRef.current) {
+          setSaveState("saved");
+          if (statusTimerRef.current) clearTimeout(statusTimerRef.current);
+          statusTimerRef.current = setTimeout(() => setSaveState("idle"), 2000);
+        }
+      } catch (error) {
+        if (version === latestVersionRef.current) {
+          setSaveState("error");
+          toast("Auto-save failed", "error");
+          if (statusTimerRef.current) clearTimeout(statusTimerRef.current);
+          statusTimerRef.current = setTimeout(() => setSaveState("idle"), 3000);
+        }
+        throw error;
       }
-    }, 800);
-  }, [monthKey, salary, expenses, toast]);
+    });
 
-  useEffect(() => { scheduleSave(); },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [salary, expenses]);
-  useEffect(() => () => { if (timerRef.current) clearTimeout(timerRef.current); }, []);
+    saveQueueRef.current = save.catch(() => undefined);
+    return save;
+  }, [monthKey, toast]);
+
+  const updateLatestSnapshot = useCallback((nextExpenses: Expense[], nextSalary = salaryNum) => {
+    latestSnapshotRef.current = { salary: nextSalary, expenses: nextExpenses };
+    latestVersionRef.current += 1;
+    return latestVersionRef.current;
+  }, [salaryNum]);
+
+  const scheduleSave = useCallback((nextExpenses = expenses, nextSalary = salaryNum) => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    updateLatestSnapshot(nextExpenses, nextSalary);
+    setSaveState("saving");
+    timerRef.current = setTimeout(() => {
+      timerRef.current = null;
+      void queueLatestSave().catch(() => undefined);
+    }, 800);
+  }, [expenses, salaryNum, queueLatestSave, updateLatestSnapshot]);
+
+  const saveImmediately = useCallback((nextExpenses: Expense[], nextSalary = salaryNum) => {
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
+    updateLatestSnapshot(nextExpenses, nextSalary);
+    setSaveState("saving");
+    return { version: latestVersionRef.current, promise: queueLatestSave() };
+  }, [salaryNum, queueLatestSave, updateLatestSnapshot]);
+
+  const flushPendingSave = useCallback(async () => {
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+      await queueLatestSave();
+    } else if (latestVersionRef.current > persistedVersionRef.current) {
+      await queueLatestSave();
+    } else {
+      await saveQueueRef.current;
+    }
+    if (latestVersionRef.current > persistedVersionRef.current) {
+      throw new Error("Dashboard changes have not been saved");
+    }
+  }, [queueLatestSave]);
+
+  useEffect(() => registerDashboardSaveFlusher(flushPendingSave), [flushPendingSave]);
+  useEffect(() => {
+    scheduleSave(expenses, salaryNum);
+  // Initial save creates the month and seeds its default expense list.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  useEffect(() => {
+    scheduleSave(expenses, salaryNum);
+  // Salary typing and drag reorder remain debounced.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [salary]);
+  useEffect(() => () => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    if (statusTimerRef.current) clearTimeout(statusTimerRef.current);
+  }, []);
+
+  async function openMonth(event: React.MouseEvent<HTMLAnchorElement>) {
+    event.preventDefault();
+    try {
+      await flushPendingSave();
+      router.push("/month/current");
+    } catch {
+      // Keep the user on Dashboard so the unsaved mutation remains visible.
+    }
+  }
 
   // ── Expense actions ────────────────────────────────────────────────
   function addExpense() {
-    setExpenses(prev => [...prev, {
+    const nextExpenses = [...expenses, {
       id: `new-${Date.now()}`, month_id: "", clerk_id: "",
-      label: "New expense", category: "living", amount: 0,
-      sort_order: prev.length, created_at: "",
-    }]);
+      label: "New expense", category: "living" as const, amount: 0,
+      sort_order: expenses.length, created_at: "",
+    }];
+    setExpenses(nextExpenses);
+    void saveImmediately(nextExpenses).promise.catch(() => undefined);
   }
 
-  function updateExpense(id: string, field: keyof Expense, value: string | number) {
-    setExpenses(prev => prev.map(e => e.id === id ? { ...e, [field]: value } : e));
+  function updateExpense(id: string, changes: Pick<Expense, "label" | "category" | "amount">) {
+    const nextExpenses = expenses.map(e => e.id === id ? { ...e, ...changes } : e);
+    setExpenses(nextExpenses);
+    void saveImmediately(nextExpenses).promise.catch(() => undefined);
   }
 
   function removeExpense() {
     if (!deleteTarget) return;
-    setExpenses(prev => prev.filter(e => e.id !== deleteTarget));
+    const previousExpenses = expenses;
+    const nextExpenses = expenses.filter(e => e.id !== deleteTarget);
+    setExpenses(nextExpenses);
+    const { version, promise } = saveImmediately(nextExpenses);
+    void promise.catch(() => {
+      if (latestVersionRef.current === version) {
+        setExpenses(previousExpenses);
+        const rollback = saveImmediately(previousExpenses);
+        void rollback.promise.catch(() => undefined);
+      }
+    });
     setDeleteTarget(null);
     toast("Removed", "info");
   }
@@ -128,15 +232,15 @@ export function DashboardClient({
   function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event;
     if (over && active.id !== over.id) {
-      setExpenses(prev => {
-        const oi = prev.findIndex(e => e.id === active.id);
-        const ni = prev.findIndex(e => e.id === over.id);
-        return arrayMove(prev, oi, ni);
-      });
+      const oi = expenses.findIndex(e => e.id === active.id);
+      const ni = expenses.findIndex(e => e.id === over.id);
+      const nextExpenses = arrayMove(expenses, oi, ni);
+      setExpenses(nextExpenses);
+      scheduleSave(nextExpenses);
     }
   }
 
-  const { fixed, savings, buffer, livingTotal } = calcTotals(expenses, salary);
+  const { fixed, savings, buffer, livingTotal } = calcTotals(expenses, salaryNum);
   const hasData = stats.months_logged > 0;
 
   return (
@@ -191,6 +295,7 @@ export function DashboardClient({
           )}
           <Link
             href="/month/current"
+            onClick={openMonth}
             className="hidden sm:flex items-center gap-1.5 text-sm font-medium px-3.5 py-2 rounded-lg transition-colors flex-none"
             style={{ background: "var(--brand)", color: "#0a0a0a" }}
           >
@@ -202,6 +307,7 @@ export function DashboardClient({
       {/* Mobile CTA */}
       <Link
         href="/month/current"
+        onClick={openMonth}
         className="sm:hidden flex items-center justify-between px-4 py-3 rounded-xl border"
         style={{ background: "var(--surface)", borderColor: "var(--border)" }}
       >
@@ -232,7 +338,17 @@ export function DashboardClient({
               <input
                 type="number"
                 value={salary}
-                onChange={e => setSalary(parseFloat(e.target.value) || 0)}
+                placeholder="0"
+                min={0}
+                onChange={e => {
+                  const val = e.target.value;
+                  if (val === "") {
+                    setSalary("");
+                  } else {
+                    const parsed = parseFloat(val);
+                    setSalary(isNaN(parsed) ? "" : Math.max(0, parsed));
+                  }
+                }}
                 className="bg-transparent font-mono font-semibold text-right focus:outline-none"
                 style={{ color: "var(--text-hi)", width: 90, fontSize: 14 }}
                 step={100}
@@ -473,7 +589,7 @@ function MonthCard({ summary, currency, index }: {
 /* ── Expense row (sortable, drag-and-drop) ── */
 function ExpenseRow({ exp, currency, isLast, onChange, onRemove }: {
   exp: Expense; currency: string; isLast: boolean;
-  onChange: (id: string, field: keyof Expense, value: string | number) => void;
+  onChange: (id: string, changes: Pick<Expense, "label" | "category" | "amount">) => void;
   onRemove: (id: string) => void;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
@@ -502,9 +618,11 @@ function ExpenseRow({ exp, currency, isLast, onChange, onRemove }: {
   }
 
   function saveEditing() {
-    onChange(exp.id, "label", draftLabel.trim() || "Expense");
-    onChange(exp.id, "category", draftCategory);
-    onChange(exp.id, "amount", Number(draftAmount) || 0);
+    onChange(exp.id, {
+      label: draftLabel.trim() || "Expense",
+      category: draftCategory,
+      amount: Number(draftAmount) || 0,
+    });
     setIsEditing(false);
   }
 
@@ -661,7 +779,8 @@ function ExpenseRow({ exp, currency, isLast, onChange, onRemove }: {
           {isEditing ? <Check className="w-3.5 h-3.5 stroke-[2.5]" /> : <Pencil className="w-3.5 h-3.5" />}
         </button>
 
-        {/* Remove */}
+        {/* Remove — visible only while editing */}
+        {isEditing && (
         <button
           onClick={() => onRemove(exp.id)}
           className="expense-remove-btn flex-none rounded flex items-center justify-center transition-all"
@@ -672,6 +791,7 @@ function ExpenseRow({ exp, currency, isLast, onChange, onRemove }: {
         >
           <Trash2 className="w-3.5 h-3.5" />
         </button>
+        )}
       </div>
     </motion.div>
   );

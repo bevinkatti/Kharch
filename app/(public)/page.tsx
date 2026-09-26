@@ -137,8 +137,8 @@ export default function LandingPage() {
             {/* Bars */}
             <div className="px-5 py-4 space-y-3">
               {[
-                { label: "Fixed & EMIs",    amt: "₹23,500", pct: 52, color: "#6366f1" },
-                { label: "Savings",         amt: "₹9,000",  pct: 20, color: "#3ecf8e" },
+                { label: "Fixed & EMIs", amt: "₹23,500", pct: 52, color: "#6366f1" },
+                { label: "Savings", amt: "₹9,000", pct: 20, color: "#3ecf8e" },
                 { label: "Living & buffer", amt: "₹12,300", pct: 28, color: "#fbbf24" },
               ].map((r, i) => (
                 <div key={r.label}>
@@ -197,11 +197,11 @@ export default function LandingPage() {
           style={{ borderColor: "var(--border)" }}
         >
           {[
-            { icon: TrendingUp,   title: "Salary breakdown",  desc: "Fixed, savings, living — split automatically from your salary every month." },
-            { icon: CheckCircle2, title: "Money-flow moves",  desc: "Interactive checklist that deducts each task from your balance in real time." },
-            { icon: Shield,       title: "Emergency fund",    desc: "Track progress toward your safety net with a visual progress bar." },
-            { icon: Zap,          title: "Auto-save",         desc: "Every change saves automatically. No save button. No lost data." },
-            { icon: IndianRupee,  title: "Built for India",   desc: "Rupee-first, Indian number formatting, EMI-aware — not an afterthought." },
+            { icon: TrendingUp, title: "Salary breakdown", desc: "Fixed, savings, living — split automatically from your salary every month." },
+            { icon: CheckCircle2, title: "Money-flow moves", desc: "Interactive checklist that deducts each task from your balance in real time." },
+            { icon: Shield, title: "Emergency fund", desc: "Track progress toward your safety net with a visual progress bar." },
+            { icon: Zap, title: "Auto-save", desc: "Every change saves automatically. No save button. No lost data." },
+            { icon: IndianRupee, title: "Built for India", desc: "Rupee-first, Indian number formatting, EMI-aware — not an afterthought." },
           ].map((f, i, arr) => {
             const Icon = f.icon;
             return (

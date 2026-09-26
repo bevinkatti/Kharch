@@ -20,7 +20,7 @@ export function SettingsForm({ initial }: Props) {
   const [currency,  setCurrency]  = useState(initial.currency);
   const [cityLabel, setCityLabel] = useState(initial.city_label);
   const [efTarget,  setEfTarget]  = useState(initial.ef_target);
-  const [salary,    setSalary]    = useState(initial.salary);
+  const [salary,    setSalary]    = useState<number | "">(initial.salary || "");
   const [salaryDay, setSalaryDay] = useState<number | "">(initial.salary_day ?? "");
   const [saveState, setSaveState] = useState<SaveState>("idle");
 
@@ -31,7 +31,10 @@ export function SettingsForm({ initial }: Props) {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          currency, city_label: cityLabel, ef_target: efTarget, salary,
+          currency,
+          city_label: cityLabel,
+          ef_target: Math.max(0, efTarget),
+          salary: salary === "" ? 0 : Math.max(0, Number(salary)),
           salary_day: salaryDay === "" ? null : Number(salaryDay),
         }),
       });
@@ -93,8 +96,19 @@ export function SettingsForm({ initial }: Props) {
         >
           <span className="text-sm font-medium" style={{ color: "var(--text-lo)" }}>{currency}</span>
           <input
-            type="number" value={salary}
-            onChange={e => setSalary(parseFloat(e.target.value) || 0)}
+            type="number"
+            value={salary}
+            placeholder="0"
+            min={0}
+            onChange={e => {
+              const val = e.target.value;
+              if (val === "") {
+                setSalary("");
+              } else {
+                const parsed = parseFloat(val);
+                setSalary(isNaN(parsed) ? "" : Math.max(0, parsed));
+              }
+            }}
             inputMode="numeric"
             className="w-24 sm:w-28 text-right font-mono font-semibold text-sm focus:outline-none"
             style={inputText}
@@ -112,8 +126,13 @@ export function SettingsForm({ initial }: Props) {
         >
           <span className="text-sm font-medium" style={{ color: "var(--text-lo)" }}>{currency}</span>
           <input
-            type="number" value={efTarget}
-            onChange={e => setEfTarget(parseFloat(e.target.value) || 0)}
+            type="number"
+            min={0}
+            value={efTarget}
+            onChange={e => {
+              const v = parseFloat(e.target.value);
+              setEfTarget(isNaN(v) ? 0 : Math.max(0, v));
+            }}
             inputMode="numeric"
             className="w-24 sm:w-28 text-right font-mono font-semibold text-sm focus:outline-none"
             style={inputText}

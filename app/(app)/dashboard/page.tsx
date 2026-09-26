@@ -43,7 +43,16 @@ export default async function DashboardPage() {
   }
 
   const summaries = keys.map(key => {
-    const month    = monthMap[key] ?? null;
+    const rawMonth = monthMap[key] ?? null;
+    const month = rawMonth
+      ? {
+          ...rawMonth,
+          salary:
+            rawMonth.salary && rawMonth.salary > 0
+              ? rawMonth.salary
+              : (settings?.salary ?? 0),
+        }
+      : null;
     const expenses = month ? (expMap[month.id] ?? []) : [];
     return buildMonthSummary(key, month, expenses);
   });
