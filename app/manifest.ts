@@ -5,7 +5,7 @@ export default function manifest(): MetadataRoute.Manifest {
     name: 'Kharch - Where is my salary',
     short_name: 'Kharch',
     description: 'Track your monthly expenses and savings.',
-    start_url: '/dashboard',
+    start_url: '/',
     display: 'standalone',
     background_color: '#0f0d14',
     theme_color: '#0f0d14',
