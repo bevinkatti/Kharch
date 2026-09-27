@@ -647,4 +647,11 @@ input[type="number"] {
   .month-h1 {
     font-size: 24px !important;
   }
+
+  /* Mobile browsers zoom focused form controls rendered below 16px. */
+  input:not(.salary-input):not([style*="font-size: 24px"]):not([style*="font-size: 22px"]),
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
 }
