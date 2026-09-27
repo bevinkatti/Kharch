@@ -1,6 +1,8 @@
 # Kharch 💸
 
-### Where is my salary?
+### Where is my salary?  
+<div align="center">
+<img src="./public/favicon.svg" alt="Kharch" width="100"/>  
 
 Kharch is a simple personal salary tracking app built around one question:
 
