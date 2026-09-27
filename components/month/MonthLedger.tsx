@@ -425,24 +425,6 @@ export function MonthLedger({
             <span className="font-mono">{fmt(efAmount, CUR)}</span>
             <span>target {fmt(settings.ef_target, CUR)}</span>
           </div>
-          <div className="flex items-center justify-between pt-1 gap-3">
-            <span className="text-sm" style={{ color: "var(--text-md)" }}>Current amount</span>
-            <div
-              className="flex items-center gap-1 rounded-md px-3 py-2 flex-none"
-              style={{ background: "var(--bg-raised)" }}
-            >
-              <span className="text-sm" style={{ color: "var(--text-lo)" }}>{CUR}</span>
-              <input
-                type="number"
-                value={efAmount || ""}
-                onChange={e => setEfAmount(parseFloat(e.target.value) || 0)}
-                placeholder="0"
-                inputMode="numeric"
-                className="text-right bg-transparent font-mono font-semibold text-sm focus:outline-none"
-                style={{ color: "var(--text-hi)", width: 80 }}
-              />
-            </div>
-          </div>
         </div>
       </div>
     </div>

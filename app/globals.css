@@ -557,9 +557,12 @@ input[type="number"] {
     padding-left: 8px !important;
     padding-right: 8px !important;
   }
-  /* Hide drag handle on mobile to save space */
+  /* Keep the reorder handle available for the touch sensor on mobile. */
   .expense-row .drag-handle-col {
-    display: none !important;
+    display: flex !important;
+    width: 28px !important;
+    opacity: 0.4 !important;
+    touch-action: auto;
   }
   /* Category select: very compact */
   .expense-category-select {

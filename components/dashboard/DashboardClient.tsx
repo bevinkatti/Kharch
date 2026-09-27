@@ -7,7 +7,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  DndContext, DragEndEvent, PointerSensor, TouchSensor,
+  DndContext, DragEndEvent, MouseSensor, TouchSensor,
   useSensor, useSensors, closestCenter,
 } from "@dnd-kit/core";
 import {
@@ -68,7 +68,7 @@ export function DashboardClient({
   const saveQueueRef = useRef<Promise<void>>(Promise.resolve());
 
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
+    useSensor(MouseSensor,   { activationConstraint: { distance: 6 } }),
     useSensor(TouchSensor,   { activationConstraint: { delay: 150, tolerance: 8 } }),
   );
 
