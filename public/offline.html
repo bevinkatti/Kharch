@@ -12,7 +12,16 @@
         background: #0D0F0E;
         color: #f7f6f8;
       }
-      * { box-sizing: border-box; }
+
+      * {
+        box-sizing: border-box;
+        -webkit-tap-highlight-color: transparent;
+        -webkit-touch-callout: none;
+        -webkit-user-select: none;
+        user-select: none;
+        touch-action: manipulation;
+      }
+
       body {
         min-height: 100vh;
         min-height: 100svh;
