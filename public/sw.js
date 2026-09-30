@@ -1,5 +1,5 @@
-// Kharch Service Worker - v3
-const CACHE_NAME = "kharch-v3";
+// Kharch Service Worker - v4
+const CACHE_NAME = "kharch-v4";
 const STATIC_ASSETS = [
   "/favicon.svg",
   "/manifest.json",
@@ -32,23 +32,23 @@ self.addEventListener("fetch", (event) => {
 
   const url = new URL(request.url);
 
-  // Handle document navigations explicitly. Redirects and 4xx responses pass
-  // through untouched; 5xx responses use the standalone offline fallback.
+  // Handle document navigations explicitly. HTTP responses, including errors
+  // and redirects, pass through; only a rejected network fetch uses fallback.
   if (request.mode === "navigate" || request.destination === "document") {
     event.respondWith(
-      fetch(request).then(async (response) => {
-        // Server failures can resolve as HTTP responses instead of rejecting
-        // the fetch. Route all 5xx responses through the offline fallback.
-        if (response.status >= 500 && response.status < 600) {
-          throw new Error("Navigation returned a server error");
-        }
-
-        // Return successful HTML documents and redirects normally without
-        // persisting user-specific navigation responses.
-        return response;
-      }).catch(async () => {
+      fetch(request).catch(async () => {
         const offlinePage = await caches.match("/offline.html");
-        if (offlinePage) return offlinePage;
+        if (offlinePage) {
+          const target = new URL(request.url);
+          const retryPath = `${target.pathname}${target.search}`;
+          const html = (await offlinePage.text()).replace(
+            "__KHARCH_RETRY_URL__",
+            encodeURIComponent(retryPath)
+          );
+          return new Response(html, {
+            headers: { "Content-Type": "text/html; charset=utf-8" },
+          });
+        }
         return new Response("You're offline. Turn on your internet connection to continue.", {
           status: 200,
           headers: { "Content-Type": "text/plain; charset=utf-8" },
@@ -58,9 +58,10 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // Network-first for API calls and Next.js assets.
+  // Keep APIs and Next.js requests network-only; responses may contain
+  // user-specific data and must not be served from a previous session.
   if (url.pathname.startsWith("/api/") || url.pathname.startsWith("/_next/")) {
-    event.respondWith(fetch(request).catch(() => caches.match(request)));
+    event.respondWith(fetch(request));
     return;
   }
 
@@ -86,14 +87,7 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // Network-first for other GET requests, without storing failures or redirects.
-  event.respondWith(
-    fetch(request).then((response) => {
-      if (response.ok && !response.redirected) {
-        const copy = response.clone();
-        event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.put(request, copy)));
-      }
-      return response;
-    }).catch(() => caches.match(request))
-  );
+  // Do not cache arbitrary responses: app-router/RSC requests can contain
+  // authenticated page data even though they are not document navigations.
+  event.respondWith(fetch(request));
 });

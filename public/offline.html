@@ -94,7 +94,13 @@
       </div>
       <h1>You&#39;re offline</h1>
       <p>Turn on your internet connection to continue.</p>
-      <button type="button" onclick="window.location.reload()">Refresh</button>
+      <button type="button" onclick="window.location.assign(retryUrl)">Refresh</button>
     </main>
+    <script>
+      const encodedRetryUrl = "__KHARCH_RETRY_URL__";
+      const retryUrl = encodedRetryUrl === "__KHARCH_RETRY_URL__"
+        ? "/"
+        : decodeURIComponent(encodedRetryUrl);
+    </script>
   </body>
 </html>
