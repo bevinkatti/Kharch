@@ -2,7 +2,7 @@ import { auth, currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { supabaseAdmin } from "@/lib/supabase";
 import {
-  buildMonthSummary, buildYearStats, getYear12Months, getCurrentMonthKey, DEFAULT_EXPENSES,
+  buildMonthSummary, buildYearStats, getYear12Months, getMonthKeysWithHistory, getCurrentMonthKey, DEFAULT_EXPENSES,
 } from "@/lib/utils";
 import type { Expense, Month, UserSettings } from "@/types";
 import { DashboardClient } from "@/components/dashboard/DashboardClient";
@@ -22,11 +22,13 @@ export default async function DashboardPage() {
   if (!settings) redirect("/onboarding");
 
   const currency = settings.currency ?? "₹";
-  const keys = getYear12Months();
+  const rollingKeys = getYear12Months();
   const currentMonthKey = getCurrentMonthKey();
 
   const { data: months } = await supabaseAdmin
-    .from("months").select("*").eq("clerk_id", userId).in("month_key", keys);
+    .from("months").select("*").eq("clerk_id", userId);
+
+  const keys = getMonthKeysWithHistory((months ?? []).map((month: Month) => month.month_key), rollingKeys);
 
   const monthMap: Record<string, Month> = {};
   for (const m of months ?? []) monthMap[m.month_key] = m;
@@ -57,9 +59,10 @@ export default async function DashboardPage() {
     return buildMonthSummary(key, month, expenses);
   });
 
-  const stats = buildYearStats(summaries);
+  const rollingSummaries = summaries.filter(summary => rollingKeys.includes(summary.month_key));
+  const stats = buildYearStats(rollingSummaries);
 
-  const chartData = summaries.map(s => ({
+  const chartData = rollingSummaries.map(s => ({
     label: s.label, saved: s.total_saved, salary: s.salary,
   }));
 

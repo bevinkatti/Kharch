@@ -1,7 +1,7 @@
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { supabaseAdmin } from "@/lib/supabase";
-import { getCurrentMonthKey, getPast12Months, getYear12Months, buildMonthSummary, monthKeyToLabel } from "@/lib/utils";
+import { getCurrentMonthKey, getYear12Months, getMonthKeysWithHistory, buildMonthSummary, monthKeyToLabel } from "@/lib/utils";
 import type { Month, Expense, UserSettings } from "@/types";
 import { MonthLedger } from "@/components/month/MonthLedger";
 import { DEFAULT_EXPENSES } from "@/lib/utils";
@@ -86,13 +86,12 @@ export default async function MonthPage({ params }: Props) {
   }
 
   // Fetch all logged month keys for the tab dots
-  const allKeys = getYear12Months();
   const { data: allMonths } = await supabaseAdmin
     .from("months")
     .select("month_key")
-    .eq("clerk_id", userId)
-    .in("month_key", allKeys);
+    .eq("clerk_id", userId);
   const loggedKeys = new Set((allMonths ?? []).map((m: { month_key: string }) => m.month_key));
+  const monthKeys = getMonthKeysWithHistory(loggedKeys, getYear12Months());
 
   const defaultSettings: UserSettings = {
     id: "", clerk_id: userId,
@@ -106,7 +105,7 @@ export default async function MonthPage({ params }: Props) {
       monthKey={monthKey}
       initialMonth={month ?? null}
       initialExpenses={
-        expenses.length > 0
+        month
           ? expenses
           : DEFAULT_EXPENSES.map((e, i) => ({
               ...e, id: `default-${i}`, month_id: "", clerk_id: userId, created_at: "",
@@ -118,6 +117,7 @@ export default async function MonthPage({ params }: Props) {
       prevMonthSaved={prevMonthSaved}
       prevMonthLabel={prevMonthLabel}
       loggedKeys={loggedKeys}
+      monthKeys={monthKeys}
     />
   );
 }

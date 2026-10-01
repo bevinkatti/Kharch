@@ -1,5 +1,6 @@
 import { type ClassValue, clsx } from "clsx";
 import type { CheckItem, Expense, Month, MonthSummary, YearStats } from "@/types";
+export { getMonthKeysWithHistory, getYear12Months } from "./month-keys";
 
 export function cn(...inputs: ClassValue[]) {
   return clsx(inputs);
@@ -37,14 +38,6 @@ export function monthKeyToLabel(key: string): { short: string; full: string } {
 export function getCurrentMonthKey(): string {
   const now = new Date();
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
-}
-
-export function getYear12Months(): string[] {
-  const now = new Date();
-  return Array.from({ length: 12 }, (_, i) => {
-    const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-  });
 }
 
 export function getPast12Months(): string[] {

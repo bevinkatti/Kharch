@@ -1,16 +1,16 @@
 "use client";
 import { useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { getYear12Months, monthKeyToLabel } from "@/lib/utils";
+import { monthKeyToLabel } from "@/lib/utils";
 
 interface Props {
   currentMonthKey: string;
   loggedKeys: Set<string>;
+  monthKeys: string[];
 }
 
-export function MonthTabs({ currentMonthKey, loggedKeys }: Props) {
+export function MonthTabs({ currentMonthKey, loggedKeys, monthKeys }: Props) {
   const router    = useRouter();
-  const keys      = getYear12Months();
   const scrollRef = useRef<HTMLDivElement>(null);
   const activeRef = useRef<HTMLButtonElement>(null);
 
@@ -45,7 +45,7 @@ export function MonthTabs({ currentMonthKey, loggedKeys }: Props) {
         paddingBottom: 2,
       }}
     >
-      {keys.map(key => {
+      {monthKeys.map(key => {
         const { short } = monthKeyToLabel(key);
         const active = key === currentMonthKey;
         const logged = loggedKeys.has(key);

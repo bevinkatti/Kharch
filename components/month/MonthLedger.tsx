@@ -27,13 +27,14 @@ interface Props {
   prevMonthSaved?: number | null;
   prevMonthLabel?: string | null;
   loggedKeys: Set<string>;
+  monthKeys: string[];
 }
 
 type SaveState = "idle" | "saving" | "saved" | "error";
 
 export function MonthLedger({
   monthKey, initialMonth, initialExpenses, settings, isNew,
-  carriedEfAmount, prevMonthSaved, prevMonthLabel, loggedKeys,
+  carriedEfAmount, prevMonthSaved, prevMonthLabel, loggedKeys, monthKeys,
 }: Props) {
   const { full: monthLabel } = monthKeyToLabel(monthKey);
   const CUR = settings.currency || "₹";
@@ -183,7 +184,7 @@ export function MonthLedger({
       style={{ maxWidth: 640 }}
     >
       {/* Month tabs */}
-      <MonthTabs currentMonthKey={monthKey} loggedKeys={loggedKeys} />
+      <MonthTabs currentMonthKey={monthKey} loggedKeys={loggedKeys} monthKeys={monthKeys} />
 
       {/* Comparison nudge */}
       <AnimatePresence>
