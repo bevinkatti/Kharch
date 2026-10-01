@@ -66,6 +66,8 @@ See the important numbers at a glance:
 
 No complicated accounting required.
 
+Saved months remain available in **All months** and the Month selector as the calendar moves forward.
+
 ### 🛡️ Emergency fund
 
 Set an emergency-fund target and track your progress toward it.
